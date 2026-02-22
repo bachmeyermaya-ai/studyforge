@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StudyForge</title>
+<link href="https://fonts.googleapis.com/css2?family=Cabinet+Grotesk:wght@400;500;700;800;900&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #07070c;
+  --s1: #0e0e18;
+  --s2: #14141f;
+  --s3: #1c1c2e;
+  --border: #252538;
+  --border2: #32324a;
+  --a: #7c6dfa;
+  --a2: #fa6d9a;
+  --a3: #6dfabc;
+  --a4: #fac46d;
+  --text: #eeeeff;
+  --muted: #7777aa;
+  --muted2: #4a4a6a;
+  --glow: rgba(124,109,250,0.25);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:'Cabinet Grotesk',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+
+.bg-mesh{position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse 60% 40% at 15% 10%,rgba(124,109,250,.1) 0,transparent 100%),
+             radial-gradient(ellipse 50% 40% at 85% 85%,rgba(250,109,154,.07) 0,transparent 100%),
+             radial-gradient(ellipse 40% 40% at 50% 50%,rgba(109,250,188,.04) 0,transparent 100%);}
+
+.app{display:flex;min-height:100vh;position:relative;z-index:1;}
+
+/* SIDEBAR */
+.sidebar{width:240px;flex-shrink:0;border-right:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;background:var(--s1);}
+.sidebar-logo{padding:28px 24px 24px;border-bottom:1px solid var(--border);}
+.sidebar-logo .wordmark{font-size:20px;font-weight:900;letter-spacing:-0.5px;}
+.sidebar-logo .wordmark span{color:var(--a2);}
+.sidebar-logo .tagline{font-size:11px;color:var(--muted);margin-top:2px;letter-spacing:1px;text-transform:uppercase;}
+.sidebar-nav{padding:16px 12px;flex:1;overflow-y:auto;}
+.nav-section{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);padding:8px 12px 6px;font-weight:700;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;color:var(--muted);font-size:14px;font-weight:500;transition:all .2s;margin-bottom:2px;}
+.nav-item:hover{background:var(--s2);color:var(--text);}
+.nav-item.active{background:rgba(124,109,250,.15);color:var(--a);border:1px solid rgba(124,109,250,.2);}
+.nav-item .icon{font-size:16px;width:20px;text-align:center;}
+.nav-badge{margin-left:auto;background:var(--a);color:white;font-size:10px;font-weight:700;padding:2px 7px;border-radius:100px;}
+.sidebar-footer{padding:16px 12px;border-top:1px solid var(--border);}
+.sidebar-footer .credits{font-size:11px;color:var(--muted2);text-align:center;line-height:1.6;}
+
+/* MAIN */
+.main{flex:1;overflow-y:auto;min-height:100vh;}
+.view{display:none;animation:fadeIn .3s ease;}
+.view.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+.page-header{padding:36px 40px 0;display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+.page-title{font-size:30px;font-weight:900;letter-spacing:-0.5px;}
+.page-sub{color:var(--muted);font-size:14px;margin-top:4px;}
+.page-body{padding:28px 40px 60px;}
+
+.card{background:var(--s1);border:1px solid var(--border);border-radius:18px;padding:28px;margin-bottom:20px;}
+.card-sm{background:var(--s2);border:1px solid var(--border);border-radius:14px;padding:20px;}
+
+/* FORM */
+.form-group{margin-bottom:20px;}
+label.lbl{display:block;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:8px;}
+input,textarea,select{width:100%;background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:12px 16px;color:var(--text);font-family:'Cabinet Grotesk',sans-serif;font-size:14px;outline:none;transition:border-color .2s,box-shadow .2s;appearance:none;}
+input:focus,textarea:focus,select:focus{border-color:var(--a);box-shadow:0 0 0 3px rgba(124,109,250,.12);}
+textarea{resize:vertical;min-height:160px;line-height:1.6;}
+.chips{display:flex;flex-wrap:wrap;gap:8px;}
+.chip{padding:8px 16px;border-radius:100px;border:1.5px solid var(--border);font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;color:var(--muted);}
+.chip:hover{border-color:var(--a);color:var(--text);}
+.chip.sel{background:rgba(124,109,250,.2);border-color:var(--a);color:var(--a);}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;border-radius:11px;font-family:'Cabinet Grotesk',sans-serif;font-weight:700;font-size:14px;cursor:pointer;border:none;transition:all .2s;}
+.btn-primary{background:var(--a);color:white;box-shadow:0 4px 20px var(--glow);}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 28px var(--glow);}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed;transform:none;}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border);}
+.btn-ghost:hover{color:var(--text);border-color:var(--border2);}
+.btn-danger{background:rgba(250,109,154,.15);color:var(--a2);border:1px solid rgba(250,109,154,.3);}
+.btn-sm{padding:8px 16px;font-size:13px;border-radius:9px;}
+
+/* STEPS */
+.steps-bar{display:flex;align-items:center;margin-bottom:32px;}
+.step-dot{display:flex;flex-direction:column;align-items:center;gap:5px;}
+.step-dot .circle{width:32px;height:32px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:var(--muted);transition:all .3s;}
+.step-dot.active .circle{background:var(--a);border-color:var(--a);color:white;box-shadow:0 0 16px var(--glow);}
+.step-dot.done .circle{background:var(--a3);border-color:var(--a3);color:var(--bg);}
+.step-dot .slabel{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);white-space:nowrap;}
+.step-dot.active .slabel{color:var(--a);}
+.step-dot.done .slabel{color:var(--a3);}
+.step-line{flex:1;height:2px;background:var(--border);margin:0 6px;margin-bottom:20px;transition:background .3s;}
+.step-line.done{background:var(--a3);}
+.step-section{display:none;}
+.step-section.active{display:block;animation:fadeIn .3s ease;}
+
+/* SLIDER */
+.note-big{font-family:'Instrument Serif',serif;font-size:56px;font-style:italic;text-align:center;background:linear-gradient(135deg,var(--a),var(--a2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;}
+input[type=range]{height:5px;background:var(--border);border-radius:3px;padding:0;border:none;box-shadow:none;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:var(--a);cursor:pointer;box-shadow:0 0 10px var(--glow);}
+
+/* PLAN CARDS */
+.plan-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:16px;}
+.plan-card{background:var(--s1);border:1px solid var(--border);border-radius:16px;padding:22px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;}
+.plan-card:hover{border-color:var(--border2);transform:translateY(-2px);}
+.plan-card .matiere{font-size:18px;font-weight:800;margin-bottom:6px;}
+.plan-card .meta{font-size:12px;color:var(--muted);display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px;}
+.plan-card .tag{padding:3px 10px;border-radius:100px;font-size:11px;font-weight:700;background:rgba(124,109,250,.15);color:var(--a);border:1px solid rgba(124,109,250,.2);}
+.progress-mini{height:4px;background:var(--border);border-radius:2px;margin-bottom:8px;overflow:hidden;}
+.progress-mini-fill{height:100%;background:linear-gradient(90deg,var(--a),var(--a2));border-radius:2px;}
+.empty-state{text-align:center;padding:80px 40px;color:var(--muted);}
+.empty-state .emoji{font-size:56px;margin-bottom:16px;}
+.empty-state h3{font-size:20px;font-weight:800;color:var(--text);margin-bottom:8px;}
+.empty-state p{font-size:14px;margin-bottom:24px;line-height:1.6;}
+
+/* PLAN DETAIL */
+.plan-tabs{display:flex;gap:4px;background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:4px;margin-bottom:24px;}
+.plan-tab{flex:1;padding:10px;text-align:center;border-radius:9px;cursor:pointer;font-size:13px;font-weight:700;color:var(--muted);transition:all .2s;}
+.plan-tab.active{background:var(--a);color:white;box-shadow:0 2px 12px var(--glow);}
+.tab-content{display:none;}
+.tab-content.active{display:block;animation:fadeIn .3s ease;}
+
+/* DAYS */
+.day-block{background:var(--s1);border:1px solid var(--border);border-radius:14px;margin-bottom:12px;overflow:hidden;transition:border-color .2s;}
+.day-block:hover{border-color:var(--border2);}
+.day-hdr{display:flex;align-items:center;gap:14px;padding:16px 20px;cursor:pointer;}
+.day-num{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;color:var(--a);min-width:50px;}
+.day-ttl{font-weight:700;font-size:14px;flex:1;}
+.day-dur{font-size:12px;color:var(--muted);background:var(--s2);border:1px solid var(--border);border-radius:100px;padding:3px 10px;}
+.day-chevron{color:var(--muted);transition:transform .3s;font-size:12px;}
+.day-block.open .day-chevron{transform:rotate(180deg);}
+.day-body{display:none;padding:0 20px 16px;border-top:1px solid var(--border);}
+.day-block.open .day-body{display:block;}
+.task-row{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);}
+.task-row:last-child{border-bottom:none;}
+.task-cb{width:18px;height:18px;border-radius:5px;border:2px solid var(--border);flex-shrink:0;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;margin-top:1px;}
+.task-cb.chk{background:var(--a3);border-color:var(--a3);}
+.task-cb.chk::after{content:'✓';font-size:10px;color:var(--bg);font-weight:800;}
+.task-txt{font-size:13px;line-height:1.6;flex:1;}
+.task-badge{font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:2px 8px;border-radius:4px;white-space:nowrap;flex-shrink:0;}
+
+/* STATS */
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;}
+.stat-box{background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center;}
+.stat-val{font-size:26px;font-weight:900;font-family:'Instrument Serif',serif;}
+.stat-lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:2px;}
+
+/* PROGRESS */
+.prog-bar{height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin:8px 0;}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--a),var(--a2));border-radius:3px;transition:width .8s ease;}
+.prog-meta{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);}
+
+/* QUIZ */
+.quiz-q{font-size:18px;font-weight:700;line-height:1.5;margin-bottom:24px;font-family:'Instrument Serif',serif;font-style:italic;}
+.quiz-opts{display:flex;flex-direction:column;gap:10px;}
+.quiz-opt{padding:14px 18px;background:var(--s2);border:2px solid var(--border);border-radius:12px;cursor:pointer;font-size:14px;font-weight:500;transition:all .2s;text-align:left;color:var(--text);font-family:'Cabinet Grotesk',sans-serif;}
+.quiz-opt:hover:not(:disabled){border-color:var(--border2);}
+.quiz-opt.correct{background:rgba(109,250,188,.1);border-color:var(--a3);color:var(--a3);}
+.quiz-opt.wrong{background:rgba(250,109,154,.1);border-color:var(--a2);color:var(--a2);}
+.quiz-opt.reveal{opacity:.5;}
+.quiz-explanation{background:rgba(124,109,250,.08);border:1px solid rgba(124,109,250,.2);border-radius:12px;padding:16px;margin-top:16px;font-size:14px;line-height:1.6;color:var(--muted);}
+.quiz-score{text-align:center;padding:40px 20px;}
+.score-num{font-family:'Instrument Serif',serif;font-size:80px;font-style:italic;background:linear-gradient(135deg,var(--a),var(--a2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;}
+
+/* FLASHCARDS */
+.fc-wrapper{perspective:1200px;margin:0 auto 24px;max-width:500px;}
+.fc-card{width:100%;height:220px;position:relative;transform-style:preserve-3d;transition:transform .5s cubic-bezier(.4,0,.2,1);cursor:pointer;}
+.fc-card.flipped{transform:rotateY(180deg);}
+.fc-face{position:absolute;inset:0;border-radius:18px;display:flex;align-items:center;justify-content:center;padding:28px;text-align:center;backface-visibility:hidden;border:1px solid var(--border);}
+.fc-front{background:linear-gradient(135deg,var(--s2),var(--s3));border-color:var(--border2);}
+.fc-back{background:linear-gradient(135deg,rgba(124,109,250,.1),rgba(250,109,154,.05));border-color:rgba(124,109,250,.3);transform:rotateY(180deg);}
+.fc-text{font-size:16px;font-weight:600;line-height:1.6;}
+.fc-hint{position:absolute;bottom:12px;font-size:11px;color:var(--muted2);letter-spacing:1px;}
+.fc-rating{display:flex;gap:10px;justify-content:center;margin-top:16px;}
+.rate-btn{flex:1;max-width:120px;padding:10px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;border:none;transition:all .2s;font-family:'Cabinet Grotesk',sans-serif;}
+.rate-easy{background:rgba(109,250,188,.15);color:var(--a3);}
+.rate-medium{background:rgba(250,196,109,.15);color:var(--a4);}
+.rate-hard{background:rgba(250,109,154,.15);color:var(--a2);}
+.rate-btn:hover{transform:translateY(-2px);}
+
+/* EXAM BLANC */
+.exam-header-bar{background:linear-gradient(135deg,rgba(124,109,250,.1),rgba(250,109,154,.05));border:1px solid rgba(124,109,250,.2);border-radius:14px;padding:20px 24px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;}
+.exam-timer{font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:500;color:var(--a);}
+.exam-timer.warning{color:var(--a2);animation:pulse 1s ease-in-out infinite;}
+.exam-question{font-size:16px;line-height:1.8;font-family:'Instrument Serif',serif;font-style:italic;background:var(--s2);border:1px solid var(--border);border-radius:14px;padding:24px;margin-bottom:20px;white-space:pre-wrap;}
+.exam-answer{width:100%;background:var(--s2);border:1px solid var(--border);border-radius:14px;padding:20px;color:var(--text);font-family:'Cabinet Grotesk',sans-serif;font-size:14px;line-height:1.7;min-height:300px;resize:vertical;outline:none;transition:border-color .2s;}
+.exam-answer:focus{border-color:var(--a);}
+.feedback-score{font-family:'Instrument Serif',serif;font-size:48px;font-style:italic;text-align:center;background:linear-gradient(135deg,var(--a),var(--a3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:16px;}
+.feedback-section{margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--border);}
+.feedback-section:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0;}
+.feedback-title{font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:700;margin-bottom:8px;}
+.feedback-txt{font-size:13px;line-height:1.7;color:var(--muted);}
+
+/* TIP BOX */
+.tip-box{background:rgba(109,250,188,.06);border:1px solid rgba(109,250,188,.2);border-radius:12px;padding:16px 20px;}
+.tip-box h5{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--a3);font-weight:700;margin-bottom:10px;}
+.tip-box li{font-size:13px;color:var(--muted);margin-bottom:6px;list-style:none;padding-left:14px;position:relative;line-height:1.6;}
+.tip-box li::before{content:'→';position:absolute;left:0;color:var(--a3);}
+
+/* LOADING */
+.loading-box{text-align:center;padding:60px 40px;}
+.spinner{width:48px;height:48px;border:3px solid var(--border);border-top-color:var(--a);border-right-color:var(--a2);border-radius:50%;margin:0 auto 20px;animation:spin 1s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{opacity:.6}50%{opacity:1}}
+.loading-box p{color:var(--muted);font-size:14px;animation:pulse 1.5s ease-in-out infinite;}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:100;align-items:center;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--s1);border:1px solid var(--border2);border-radius:20px;padding:32px;max-width:440px;width:90%;animation:fadeIn .2s ease;}
+.modal h3{font-size:20px;font-weight:900;margin-bottom:8px;}
+.modal p{color:var(--muted);font-size:14px;margin-bottom:24px;}
+.modal-actions{display:flex;gap:10px;}
+
+/* TOOLS GRID */
+.tools-grid{display:grid;gap:12px;}
+.tool-card{background:var(--s2);border:1px solid var(--border);border-radius:14px;padding:20px;display:flex;align-items:center;gap:16px;cursor:pointer;transition:all .2s;}
+.tool-card:hover{border-color:var(--a);transform:translateY(-1px);}
+.tool-emoji{font-size:32px;flex-shrink:0;}
+.tool-info{flex:1;}
+.tool-info strong{display:block;font-size:15px;font-weight:800;margin-bottom:3px;}
+.tool-info span{font-size:13px;color:var(--muted);}
+
+@media(max-width:768px){
+  .sidebar{display:none;}
+  .page-header,.page-body{padding-left:20px;padding-right:20px;}
+  .plan-grid{grid-template-columns:1fr;}
+  .stats-row{grid-template-columns:repeat(3,1fr);}
+}
+</style>
+</head>
+<body>
+<div class="bg-mesh"></div>
+<div class="app">
+
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="wordmark">Study<span>Forge</span></div>
+    <div class="tagline">Prépare. Révise. Réussis.</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">Principal</div>
+    <div class="nav-item active" onclick="navigate('home')"><span class="icon">⚡</span> Tableau de bord</div>
+    <div class="nav-item" onclick="navigate('plans')"><span class="icon">📚</span> Mes plans <span class="nav-badge" id="planCount">0</span></div>
+    <div class="nav-item" onclick="navigate('create')"><span class="icon">✨</span> Créer un plan</div>
+    <div class="nav-section" style="margin-top:8px">Outils IA</div>
+    <div class="nav-item" onclick="navigate('quiz')"><span class="icon">🎯</span> Quiz</div>
+    <div class="nav-item" onclick="navigate('flashcards')"><span class="icon">🃏</span> Flashcards</div>
+    <div class="nav-item" onclick="navigate('exam')"><span class="icon">📝</span> Examen blanc</div>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="credits">StudyForge · Open Source<br>Hébergé sur Vercel</div>
+  </div>
+</aside>
+
+<main class="main">
+
+  <!-- HOME -->
+  <div id="view-home" class="view active">
+    <div class="page-header">
+      <div><div class="page-title">Bonjour 👋</div><div class="page-sub">Où en es-tu dans tes révisions ?</div></div>
+      <button class="btn btn-primary" onclick="navigate('create')">+ Nouveau plan</button>
+    </div>
+    <div class="page-body">
+      <div id="home-content"></div>
+    </div>
+  </div>
+
+  <!-- PLANS -->
+  <div id="view-plans" class="view">
+    <div class="page-header">
+      <div><div class="page-title">Mes plans 📚</div><div class="page-sub">Tous tes plans de révision</div></div>
+      <button class="btn btn-primary" onclick="navigate('create')">+ Nouveau plan</button>
+    </div>
+    <div class="page-body"><div id="plans-grid" class="plan-grid"></div><div id="plans-empty" class="empty-state" style="display:none"><div class="emoji">📭</div><h3>Aucun plan</h3><p>Génère ton premier plan adapté à ton exam.</p><button class="btn btn-primary" onclick="navigate('create')">Créer un plan</button></div></div>
+  </div>
+
+  <!-- CREATE -->
+  <div id="view-create" class="view">
+    <div class="page-header"><div><div class="page-title">Nouveau plan ✨</div><div class="page-sub">L'IA va construire un programme sur mesure</div></div></div>
+    <div class="page-body">
+      <div class="steps-bar">
+        <div class="step-dot active" id="sdot1"><div class="circle">1</div><span class="slabel">Exam</span></div>
+        <div class="step-line" id="sline1"></div>
+        <div class="step-dot" id="sdot2"><div class="circle">2</div><span class="slabel">Cours</span></div>
+        <div class="step-line" id="sline2"></div>
+        <div class="step-dot" id="sdot3"><div class="circle">3</div><span class="slabel">Objectif</span></div>
+        <div class="step-line" id="sline3"></div>
+        <div class="step-dot" id="sdot4"><div class="circle">4</div><span class="slabel">Génération</span></div>
+      </div>
+
+      <div id="cs1" class="step-section active card">
+        <div style="font-size:18px;font-weight:800;margin-bottom:4px">Ton épreuve 📅</div>
+        <div style="color:var(--muted);font-size:13px;margin-bottom:24px">Parle-moi de ton exam</div>
+        <div class="form-group"><label class="lbl">Matière</label><input id="c-mat" placeholder="Ex: Histoire, Droit constitutionnel, Maths..."/></div>
+        <div class="form-group"><label class="lbl">Date de l'exam</label><input type="date" id="c-date"/></div>
+        <div class="form-group"><label class="lbl">Type d'épreuve</label>
+          <div class="chips" id="c-type-chips">
+            <div class="chip" data-v="dissertation">📝 Dissertation</div>
+            <div class="chip" data-v="question_prob">❓ Question problématisée</div>
+            <div class="chip" data-v="synthese">🔗 Synthèse de docs</div>
+            <div class="chip" data-v="etude_doc">📄 Étude de document</div>
+            <div class="chip" data-v="commentaire">💬 Commentaire</div>
+            <div class="chip" data-v="qcm">🔘 QCM</div>
+            <div class="chip" data-v="oral">🎤 Oral</div>
+            <div class="chip" data-v="cas_pratique">⚖️ Cas pratique</div>
+          </div>
+        </div>
+        <div class="form-group"><label class="lbl">Durée de l'épreuve</label>
+          <select id="c-dur"><option value="">Sélectionner...</option><option>1h</option><option>1h30</option><option>2h</option><option>3h</option><option>4h</option></select>
+        </div>
+        <button class="btn btn-primary" onclick="cStep(2)" style="width:100%;justify-content:center">Continuer →</button>
+      </div>
+
+      <div id="cs2" class="step-section card">
+        <div style="font-size:18px;font-weight:800;margin-bottom:4px">Ton cours 📖</div>
+        <div style="color:var(--muted);font-size:13px;margin-bottom:24px">Colle tes notes ou décris les thèmes</div>
+        <div class="form-group"><label class="lbl">Contenu / Thèmes clés</label>
+          <textarea id="c-cours" placeholder="Colle ton cours, tes prises de notes, ou liste les grands thèmes..."></textarea>
+        </div>
+        <div class="form-group"><label class="lbl">Niveau actuel</label>
+          <div class="chips" id="c-niv-chips">
+            <div class="chip" data-v="zero">😅 Rien vu</div>
+            <div class="chip" data-v="debut">📖 Débuts</div>
+            <div class="chip" data-v="moyen">📗 Bases ok</div>
+            <div class="chip" data-v="bon">💪 Bonne maîtrise</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px"><button class="btn btn-ghost" onclick="cStep(1)">← Retour</button><button class="btn btn-primary" onclick="cStep(3)" style="flex:1;justify-content:center">Continuer →</button></div>
+      </div>
+
+      <div id="cs3" class="step-section card">
+        <div style="font-size:18px;font-weight:800;margin-bottom:4px">Ton objectif 🎯</div>
+        <div style="color:var(--muted);font-size:13px;margin-bottom:24px">Quelle note vises-tu ?</div>
+        <div class="note-big" id="c-note-disp">14/20</div>
+        <div class="form-group" style="margin-top:16px">
+          <input type="range" id="c-note-sl" min="8" max="20" value="14" step="0.5" oninput="document.getElementById('c-note-disp').textContent=this.value+'/20'"/>
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:6px"><span>8</span><span>12 passable</span><span>16 mention</span><span>20</span></div>
+        </div>
+        <div class="form-group"><label class="lbl">Temps par jour</label>
+          <div class="chips" id="c-tps-chips">
+            <div class="chip" data-v="30min">⚡ 30 min</div>
+            <div class="chip" data-v="1h">⏰ 1h</div>
+            <div class="chip" data-v="2h">📚 2h</div>
+            <div class="chip" data-v="3h">🔥 3h</div>
+            <div class="chip" data-v="4h+">💯 4h+</div>
+          </div>
+        </div>
+        <div class="form-group"><label class="lbl">Style de plan</label>
+          <div class="chips" id="c-style-chips">
+            <div class="chip" data-v="intensif">🚀 Intensif</div>
+            <div class="chip" data-v="regulier">📅 Régulier</div>
+            <div class="chip" data-v="progressif">📈 Progressif</div>
+          </div>
+        </div>
+        <div id="c-err" style="display:none;background:rgba(250,109,154,.1);border:1px solid rgba(250,109,154,.3);border-radius:10px;padding:12px 16px;color:var(--a2);font-size:13px;margin-bottom:12px"></div>
+        <div style="display:flex;gap:10px"><button class="btn btn-ghost" onclick="cStep(2)">← Retour</button><button class="btn btn-primary" onclick="generatePlan()" style="flex:1;justify-content:center">✨ Générer le plan</button></div>
+      </div>
+
+      <div id="cs4" class="step-section">
+        <div class="loading-box card"><div class="spinner"></div><p id="c-load-msg">L'IA analyse ton cours...</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PLAN DETAIL -->
+  <div id="view-plan-detail" class="view">
+    <div class="page-header">
+      <div><div class="page-title" id="pd-title">Mon plan</div><div class="page-sub" id="pd-sub"></div></div>
+      <button class="btn btn-ghost btn-sm" onclick="navigate('plans')">← Tous les plans</button>
+    </div>
+    <div class="page-body"><div id="pd-content"></div></div>
+  </div>
+
+  <!-- QUIZ -->
+  <div id="view-quiz" class="view">
+    <div class="page-header"><div><div class="page-title">Quiz 🎯</div><div class="page-sub">Questions générées par l'IA sur ton cours</div></div></div>
+    <div class="page-body"><div id="quiz-select"></div><div id="quiz-body" style="display:none"></div></div>
+  </div>
+
+  <!-- FLASHCARDS -->
+  <div id="view-flashcards" class="view">
+    <div class="page-header"><div><div class="page-title">Flashcards 🃏</div><div class="page-sub">Mémorise par répétition espacée</div></div></div>
+    <div class="page-body"><div id="fc-select"></div><div id="fc-body" style="display:none"></div></div>
+  </div>
+
+  <!-- EXAM BLANC -->
+  <div id="view-exam" class="view">
+    <div class="page-header"><div><div class="page-title">Examen blanc 📝</div><div class="page-sub">Conditions réelles + correction IA</div></div></div>
+    <div class="page-body"><div id="eb-select"></div><div id="eb-body" style="display:none"></div></div>
+  </div>
+
+</main>
+</div>
+
+<div class="modal-overlay" id="del-modal">
+  <div class="modal">
+    <h3>Supprimer ce plan ?</h3>
+    <p>Cette action est irréversible. Ton plan et toutes les données associées seront perdus.</p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Annuler</button>
+      <button class="btn btn-danger" onclick="confirmDelete()">Supprimer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+// CONFIG — pointe vers le proxy Vercel
+// ═══════════════════════════════════════════
+const API_URL = '/api/claude';
+
+async function callClaude(prompt, maxTokens = 4000) {
+  const res = await fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: maxTokens,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || `HTTP ${res.status}`);
+  }
+  const data = await res.json();
+  return data.content.map(b => b.text || '').join('').replace(/```json|```/g, '').trim();
+}
+
+// ═══════════════════════════════════════════
+// STATE & CONSTANTS
+// ═══════════════════════════════════════════
+let plans = [];
+let activePlanId = null;
+let deleteTarget = null;
+let quizData = [], quizIdx = 0, quizScore = 0, quizAnswered = false;
+let fcData = [], fcIdx = 0;
+let examTimer = null, examSeconds = 0;
+
+const TYPE_LABEL = {dissertation:'Dissertation',question_prob:'Question problématisée',synthese:'Synthèse de docs',etude_doc:'Étude de document',commentaire:'Commentaire',qcm:'QCM',oral:'Oral',cas_pratique:'Cas pratique'};
+const TYPE_EMOJI = {dissertation:'📝',question_prob:'❓',synthese:'🔗',etude_doc:'📄',commentaire:'💬',qcm:'🔘',oral:'🎤',cas_pratique:'⚖️'};
+const TASK_COLORS = {
+  lecture:{bg:'rgba(124,109,250,.12)',color:'#7c6dfa',label:'Lecture'},
+  fiches:{bg:'rgba(250,109,154,.12)',color:'#fa6d9a',label:'Fiches'},
+  exercice:{bg:'rgba(109,250,188,.12)',color:'#6dfabc',label:'Exercice'},
+  methode:{bg:'rgba(250,196,109,.12)',color:'#fac46d',label:'Méthode'},
+  revision:{bg:'rgba(0,200,255,.12)',color:'#00c8ff',label:'Révision'},
+  entrainement:{bg:'rgba(255,140,0,.12)',color:'#ff8c00',label:'Entraîn.'},
+};
+
+// ═══════════════════════════════════════════
+// STORAGE (localStorage)
+// ═══════════════════════════════════════════
+function savePlans() {
+  try { localStorage.setItem('sf-plans', JSON.stringify(plans)); } catch(e) {}
+}
+function loadPlans() {
+  try { const s = localStorage.getItem('sf-plans'); if(s) plans = JSON.parse(s); } catch(e) {}
+  updateBadge();
+}
+function updateBadge() { document.getElementById('planCount').textContent = plans.length; }
+
+// ═══════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════
+function navigate(view) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('view-' + view)?.classList.add('active');
+  const navIdx = {home:0,plans:1,create:2,quiz:3,flashcards:4,exam:5};
+  const items = document.querySelectorAll('.nav-item');
+  if(navIdx[view] !== undefined) items[navIdx[view]]?.classList.add('active');
+
+  if(view==='home') renderHome();
+  if(view==='plans') renderPlans();
+  if(view==='create') { resetForm(); cStep(1); }
+  if(view==='quiz') renderSelect('quiz');
+  if(view==='flashcards') renderSelect('fc');
+  if(view==='exam') renderSelect('eb');
+}
+
+// ═══════════════════════════════════════════
+// HOME
+// ═══════════════════════════════════════════
+function renderHome() {
+  const el = document.getElementById('home-content');
+  if(!plans.length) {
+    el.innerHTML = `<div class="empty-state"><div class="emoji">🚀</div><h3>Bienvenue sur StudyForge</h3><p>Crée ton premier plan de révision personnalisé.<br>L'IA adapte tout à ton exam, ton niveau et ta note cible.</p><button class="btn btn-primary" onclick="navigate('create')">✨ Créer mon premier plan</button></div>`;
+    return;
+  }
+  const totalTasks = plans.reduce((s,p)=>(p.plan?.jours||[]).flatMap(j=>j.taches||[]).length+s, 0);
+  const doneTasks = plans.reduce((s,p)=>s+(p.checked||[]).length, 0);
+  const pct = totalTasks>0?Math.round(doneTasks/totalTasks*100):0;
+  el.innerHTML = `
+    <div class="stats-row" style="margin-bottom:28px">
+      <div class="stat-box"><div class="stat-val" style="color:var(--a)">${plans.length}</div><div class="stat-lbl">Plans actifs</div></div>
+      <div class="stat-box"><div class="stat-val" style="color:var(--a2)">${plans.reduce((s,p)=>s+(p.plan?.jours?.length||0),0)}</div><div class="stat-lbl">Sessions</div></div>
+      <div class="stat-box"><div class="stat-val" style="color:var(--a3)">${pct}%</div><div class="stat-lbl">Complété</div></div>
+    </div>
+    <div style="font-weight:800;font-size:16px;margin-bottom:14px">Plans récents</div>
+    <div class="plan-grid">${[...plans].reverse().slice(0,3).map(p=>planCardHtml(p)).join('')}</div>`;
+}
+
+// ═══════════════════════════════════════════
+// PLANS LIST
+// ═══════════════════════════════════════════
+function renderPlans() {
+  const grid = document.getElementById('plans-grid');
+  const empty = document.getElementById('plans-empty');
+  if(!plans.length){grid.innerHTML='';empty.style.display='';return;}
+  empty.style.display='none';
+  grid.innerHTML = [...plans].reverse().map(p=>planCardHtml(p)).join('');
+}
+
+function planCardHtml(p) {
+  const tasks = (p.plan?.jours||[]).flatMap(j=>j.taches||[]).length;
+  const done = (p.checked||[]).length;
+  const pct = tasks>0?Math.round(done/tasks*100):0;
+  const daysLeft = Math.ceil((new Date(p.dateExam)-new Date())/86400000);
+  const dStr = daysLeft>0?`dans ${daysLeft}j`:daysLeft===0?`Aujourd'hui`:'Passé';
+  return `<div class="plan-card" onclick="openPlan('${p.id}')">
+    <div class="matiere">${p.matiere}</div>
+    <div class="meta"><span>${TYPE_EMOJI[p.typeExam]||'📝'} ${TYPE_LABEL[p.typeExam]||p.typeExam}</span><span>🎯 ${p.note}/20</span><span>📅 ${dStr}</span></div>
+    <div class="progress-mini"><div class="progress-mini-fill" style="width:${pct}%"></div></div>
+    <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:12px"><span>${done}/${tasks} tâches</span><span>${pct}%</span></div>
+    <div style="display:flex;gap:8px;margin-bottom:14px"><span class="tag">${p.plan?.jours?.length||0} jours</span></div>
+    <div style="display:flex;gap:8px" onclick="event.stopPropagation()">
+      <button class="btn btn-ghost btn-sm" onclick="openPlan('${p.id}')">Voir →</button>
+      <button class="btn btn-danger btn-sm" onclick="deletePlan('${p.id}')">Supprimer</button>
+    </div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════
+// PLAN DETAIL
+// ═══════════════════════════════════════════
+function openPlan(id) {
+  activePlanId = id;
+  const p = plans.find(x=>x.id===id);
+  if(!p) return;
+  document.getElementById('pd-title').textContent = p.matiere;
+  const dl = Math.ceil((new Date(p.dateExam)-new Date())/86400000);
+  document.getElementById('pd-sub').textContent = `${TYPE_LABEL[p.typeExam]} · ${dl>0?dl+' jours restants':'Exam passé'} · Objectif ${p.note}/20`;
+
+  const tasks=(p.plan?.jours||[]).flatMap(j=>j.taches||[]).length;
+  const done=(p.checked||[]).length;
+  const pct=tasks>0?Math.round(done/tasks*100):0;
+
+  let daysHtml='';
+  (p.plan?.jours||[]).forEach((jour,di)=>{
+    let th='';
+    (jour.taches||[]).forEach((t,ti)=>{
+      const key=`${di}-${ti}`;
+      const chk=(p.checked||[]).includes(key);
+      const st=TASK_COLORS[t.type]||TASK_COLORS.revision;
+      th+=`<div class="task-row"><div class="task-cb ${chk?'chk':''}" onclick="toggleTask('${id}',${di},${ti},this)"></div><span class="task-txt">${t.texte}</span><span class="task-badge" style="background:${st.bg};color:${st.color}">${st.label}</span></div>`;
+    });
+    daysHtml+=`<div class="day-block" id="db-${di}"><div class="day-hdr" onclick="document.getElementById('db-${di}').classList.toggle('open')"><span class="day-num">${jour.jour}</span><span class="day-ttl">${jour.theme}</span><span class="day-dur">${jour.duree}</span><span class="day-chevron">▾</span></div><div class="day-body">${th}</div></div>`;
+  });
+
+  const conseils=(p.plan?.conseils_methodologiques||[]).map(c=>`<li>${c}</li>`).join('');
+
+  document.getElementById('pd-content').innerHTML = `
+    <div class="plan-tabs">
+      <div class="plan-tab active" onclick="switchTab('plan',this)">📅 Plan</div>
+      <div class="plan-tab" onclick="switchTab('tools',this)">🛠 Outils IA</div>
+      <div class="plan-tab" onclick="switchTab('infos',this)">ℹ️ Infos</div>
+    </div>
+    <div class="tab-content active" id="tab-plan">
+      <div class="stats-row">
+        <div class="stat-box"><div class="stat-val" style="color:var(--a)">${p.plan?.jours?.length||0}</div><div class="stat-lbl">Sessions</div></div>
+        <div class="stat-box"><div class="stat-val" style="color:var(--a2)">${p.plan?.totalHeures||'?'}h</div><div class="stat-lbl">Total</div></div>
+        <div class="stat-box"><div class="stat-val" style="color:var(--a3)">${p.note}/20</div><div class="stat-lbl">Objectif</div></div>
+      </div>
+      <div class="prog-meta"><span>Progression</span><span id="pd-pct">${pct}%</span></div>
+      <div class="prog-bar"><div class="prog-fill" id="pd-fill" style="width:${pct}%"></div></div>
+      ${p.plan?.conseil_global?`<div style="background:rgba(109,250,188,.06);border:1px solid rgba(109,250,188,.2);border-radius:12px;padding:14px 18px;margin:14px 0;font-size:13px;color:var(--muted);line-height:1.7">💡 <strong style="color:var(--a3)">Stratégie clé :</strong> ${p.plan.conseil_global}</div>`:''}
+      ${daysHtml}
+      ${conseils?`<div class="tip-box" style="margin-top:16px"><h5>Conseils méthodo</h5><ul>${conseils}</ul></div>`:''}
+    </div>
+    <div class="tab-content" id="tab-tools">
+      <div class="tools-grid">
+        <div class="tool-card" onclick="launchTool('quiz','${id}')"><span class="tool-emoji">🎯</span><div class="tool-info"><strong>Quiz</strong><span>10 questions QCM générées par l'IA sur ton cours</span></div><button class="btn btn-primary btn-sm">Lancer →</button></div>
+        <div class="tool-card" onclick="launchTool('fc','${id}')"><span class="tool-emoji">🃏</span><div class="tool-info"><strong>Flashcards</strong><span>15 cartes recto/verso avec répétition espacée</span></div><button class="btn btn-primary btn-sm">Lancer →</button></div>
+        <div class="tool-card" onclick="launchTool('eb','${id}')"><span class="tool-emoji">📝</span><div class="tool-info"><strong>Examen blanc</strong><span>Vrai sujet + timer + correction IA détaillée</span></div><button class="btn btn-primary btn-sm">Lancer →</button></div>
+      </div>
+    </div>
+    <div class="tab-content" id="tab-infos">
+      <div class="card-sm">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          ${[['Matière',p.matiere],['Type',TYPE_LABEL[p.typeExam]],['Date exam',new Date(p.dateExam).toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'})],['Note cible',p.note+'/20'],['Niveau initial',{zero:'Débutant',debut:'Novice',moyen:'Intermédiaire',bon:'Avancé'}[p.niveau]||p.niveau],['Temps/jour',p.temps]].map(([l,v])=>`<div><div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">${l}</div><div style="font-weight:700">${v}</div></div>`).join('')}
+        </div>
+        <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
+          <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Aperçu du cours</div>
+          <div style="font-size:13px;color:var(--muted);line-height:1.7">${p.cours.substring(0,400)}${p.cours.length>400?'...':''}</div>
+        </div>
+      </div>
+    </div>`;
+  setTimeout(()=>document.getElementById('db-0')?.classList.add('open'), 150);
+  navigate('plan-detail');
+}
+
+function switchTab(name, el) {
+  document.querySelectorAll('.plan-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-'+name)?.classList.add('active');
+}
+
+function toggleTask(planId, di, ti, el) {
+  el.classList.toggle('chk');
+  const p = plans.find(x=>x.id===planId);
+  if(!p) return;
+  if(!p.checked) p.checked=[];
+  const key=`${di}-${ti}`;
+  const idx=p.checked.indexOf(key);
+  if(idx>-1) p.checked.splice(idx,1); else p.checked.push(key);
+  savePlans();
+  const tasks=(p.plan?.jours||[]).flatMap(j=>j.taches||[]).length;
+  const pct=tasks>0?Math.round(p.checked.length/tasks*100):0;
+  const fill=document.getElementById('pd-fill');
+  const pctEl=document.getElementById('pd-pct');
+  if(fill) fill.style.width=pct+'%';
+  if(pctEl) pctEl.textContent=pct+'%';
+}
+
+// ═══════════════════════════════════════════
+// CREATE PLAN
+// ═══════════════════════════════════════════
+let F = {};
+function resetForm() {
+  document.getElementById('c-mat').value='';
+  document.getElementById('c-date').value='';
+  document.getElementById('c-cours').value='';
+  document.getElementById('c-note-sl').value=14;
+  document.getElementById('c-note-disp').textContent='14/20';
+  document.querySelectorAll('.chip.sel').forEach(c=>c.classList.remove('sel'));
+  document.getElementById('c-err').style.display='none';
+  F={};
+}
+
+['c-type-chips','c-niv-chips','c-tps-chips','c-style-chips'].forEach(id=>{
+  document.getElementById(id)?.querySelectorAll('.chip').forEach(chip=>{
+    chip.addEventListener('click',()=>{ chip.closest('.chips').querySelectorAll('.chip').forEach(c=>c.classList.remove('sel')); chip.classList.add('sel'); });
+  });
+});
+document.getElementById('c-date').min = new Date().toISOString().split('T')[0];
+
+function cStep(n) {
+  if(n===2){
+    const mat=document.getElementById('c-mat').value.trim();
+    const dt=document.getElementById('c-date').value;
+    const tp=document.querySelector('#c-type-chips .chip.sel');
+    if(!mat||!dt||!tp){alert('Remplis la matière, la date et le type d\'épreuve');return;}
+    F.mat=mat;F.date=dt;F.type=tp.dataset.v;F.dur=document.getElementById('c-dur').value;
+  }
+  if(n===3){
+    const c=document.getElementById('c-cours').value.trim();
+    const niv=document.querySelector('#c-niv-chips .chip.sel');
+    if(!c||!niv){alert('Décris ton cours et ton niveau');return;}
+    F.cours=c;F.niveau=niv.dataset.v;
+  }
+  [1,2,3,4].forEach(i=>{
+    document.getElementById(`cs${i}`).classList.remove('active');
+    const dot=document.getElementById(`sdot${i}`);
+    dot.classList.remove('active','done');
+    if(i<n) dot.classList.add('done'); else if(i===n) dot.classList.add('active');
+  });
+  [1,2,3].forEach(i=>document.getElementById(`sline${i}`).classList[i<n?'add':'remove']('done'));
+  document.getElementById(`cs${n}`).classList.add('active');
+}
+
+async function generatePlan() {
+  const tps=document.querySelector('#c-tps-chips .chip.sel');
+  const sty=document.querySelector('#c-style-chips .chip.sel');
+  const err=document.getElementById('c-err');
+  if(!tps||!sty){err.textContent='Choisis ton temps dispo et le style de plan';err.style.display='';return;}
+  err.style.display='none';
+  F.temps=tps.dataset.v; F.style=sty.dataset.v;
+  F.note=parseFloat(document.getElementById('c-note-sl').value);
+  cStep(4);
+
+  const daysLeft=Math.ceil((new Date(F.date)-new Date())/86400000);
+  const msgs=['L\'IA analyse ton cours...','Construction du planning...','Adaptation au type d\'épreuve...','Optimisation des sessions...','Finalisation...'];
+  let mi=0;
+  const iv=setInterval(()=>{ mi=(mi+1)%msgs.length; document.getElementById('c-load-msg').textContent=msgs[mi]; },1800);
+
+  const prompt=`Tu es un expert en pédagogie. Génère un plan de révision JSON ultra-personnalisé.
+
+INFOS:
+- Matière: ${F.mat}
+- Type d'épreuve: ${TYPE_LABEL[F.type]}
+- Durée épreuve: ${F.dur||'non précisée'}
+- Exam dans: ${daysLeft} jours
+- Note visée: ${F.note}/20
+- Temps/jour: ${F.temps}
+- Style: ${F.style}
+- Niveau actuel: ${F.niveau}
+
+COURS:
+${F.cours}
+
+Réponds UNIQUEMENT avec ce JSON valide (aucun markdown):
+{"titre":"string","objectif":"string","totalHeures":number,"conseil_global":"string","jours":[{"jour":"J-X","theme":"string","duree":"Xh","taches":[{"type":"lecture|fiches|exercice|methode|revision|entrainement","texte":"string"}]}],"conseils_methodologiques":["string"]}
+
+RÈGLES: max ${Math.min(daysLeft,30)} jours, dernière session = simulation, adapte au type ${TYPE_LABEL[F.type]}, 3-5 tâches/jour.`;
+
+  try {
+    const raw = await callClaude(prompt);
+    const plan = JSON.parse(raw);
+    clearInterval(iv);
+    const newPlan={id:'plan-'+Date.now(),matiere:F.mat,dateExam:F.date,typeExam:F.type,duree:F.dur,cours:F.cours,niveau:F.niveau,note:F.note,temps:F.temps,style:F.style,plan,checked:[],createdAt:new Date().toISOString()};
+    plans.push(newPlan);
+    savePlans();
+    updateBadge();
+    openPlan(newPlan.id);
+  } catch(e) {
+    clearInterval(iv);
+    alert('Erreur: '+e.message);
+    cStep(3);
+  }
+}
+
+// ═══════════════════════════════════════════
+// DELETE
+// ═══════════════════════════════════════════
+function deletePlan(id){deleteTarget=id;document.getElementById('del-modal').classList.add('open');}
+function closeModal(){document.getElementById('del-modal').classList.remove('open');deleteTarget=null;}
+function confirmDelete(){
+  if(!deleteTarget)return;
+  plans=plans.filter(p=>p.id!==deleteTarget);
+  savePlans();updateBadge();closeModal();
+  if(activePlanId===deleteTarget){activePlanId=null;navigate('plans');}else renderPlans();
+}
+
+// ═══════════════════════════════════════════
+// TOOL SELECTOR
+// ═══════════════════════════════════════════
+function renderSelect(tool) {
+  const selId={quiz:'quiz-select',fc:'fc-select',eb:'eb-select'}[tool];
+  const bodyId={quiz:'quiz-body',fc:'fc-body',eb:'eb-body'}[tool];
+  document.getElementById(bodyId).style.display='none';
+  const el=document.getElementById(selId);
+  if(!plans.length){
+    el.innerHTML=`<div class="empty-state"><div class="emoji">📭</div><h3>Aucun plan</h3><p>Crée d'abord un plan pour accéder aux outils IA.</p><button class="btn btn-primary" onclick="navigate('create')">Créer un plan</button></div>`;
+    return;
+  }
+  const fn={quiz:'launchTool(\'quiz\'',fc:'launchTool(\'fc\'',eb:'launchTool(\'eb\''}[tool];
+  el.innerHTML=`<div style="font-weight:700;margin-bottom:14px">Choisis un plan :</div>
+    <div class="plan-grid">${plans.map(p=>`<div class="plan-card" onclick="${fn},'${p.id}')">
+      <div class="matiere">${p.matiere}</div>
+      <div class="meta"><span>${TYPE_EMOJI[p.typeExam]||'📝'} ${TYPE_LABEL[p.typeExam]}</span><span>🎯 ${p.note}/20</span></div>
+      <button class="btn btn-primary btn-sm" style="width:100%;justify-content:center;margin-top:12px">Sélectionner →</button>
+    </div>`).join('')}</div>`;
+}
+
+// ═══════════════════════════════════════════
+// TOOL LAUNCHER
+// ═══════════════════════════════════════════
+function launchTool(tool, planId) {
+  activePlanId = planId;
+  if(tool==='quiz') { navigate('quiz'); setTimeout(()=>runQuiz(planId),50); }
+  if(tool==='fc')   { navigate('flashcards'); setTimeout(()=>runFc(planId),50); }
+  if(tool==='eb')   { navigate('exam'); setTimeout(()=>runExam(planId),50); }
+}
+
+// ═══════════════════════════════════════════
+// QUIZ
+// ═══════════════════════════════════════════
+async function runQuiz(planId) {
+  const p=plans.find(x=>x.id===planId); if(!p)return;
+  document.getElementById('quiz-select').style.display='none';
+  const body=document.getElementById('quiz-body');
+  body.style.display=''; body.innerHTML=`<div class="loading-box card"><div class="spinner"></div><p>Génération du quiz sur ${p.matiere}...</p></div>`;
+
+  const prompt=`Génère un quiz de 10 questions QCM sur ce cours. Type d'épreuve: ${TYPE_LABEL[p.typeExam]}.
+COURS: ${p.cours.substring(0,3000)}
+Réponds UNIQUEMENT avec ce JSON:
+{"questions":[{"question":"string","options":["A. string","B. string","C. string","D. string"],"correct":0,"explanation":"string"}]}
+10 questions, niveaux variés (facile/moyen/difficile).`;
+
+  try {
+    const raw=await callClaude(prompt,3000);
+    quizData=JSON.parse(raw).questions; quizIdx=0; quizScore=0;
+    renderQuizQ(p);
+  } catch(e){
+    body.innerHTML=`<div class="card" style="text-align:center;padding:40px"><div style="font-size:40px;margin-bottom:12px">⚠️</div><p style="color:var(--muted)">Erreur: ${e.message}</p><button class="btn btn-primary btn-sm" style="margin-top:16px" onclick="runQuiz('${planId}')">Réessayer</button></div>`;
+  }
+}
+
+function renderQuizQ(p) {
+  if(quizIdx>=quizData.length){renderQuizScore(p);return;}
+  const q=quizData[quizIdx]; quizAnswered=false;
+  document.getElementById('quiz-body').innerHTML=`<div class="card">
+    <div style="display:flex;justify-content:space-between;margin-bottom:16px"><span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--muted)">${quizIdx+1}/${quizData.length}</span><span style="font-size:13px;color:var(--muted)">Score: ${quizScore}/${quizIdx}</span></div>
+    <div class="prog-bar" style="margin-bottom:20px"><div class="prog-fill" style="width:${quizIdx/quizData.length*100}%"></div></div>
+    <div class="quiz-q">${q.question}</div>
+    <div class="quiz-opts">${q.options.map((o,i)=>`<button class="quiz-opt" onclick="answerQ(${i})">${o}</button>`).join('')}</div>
+    <div id="q-exp" style="display:none" class="quiz-explanation"></div>
+    <div id="q-nav" style="display:flex;justify-content:flex-end;margin-top:20px"><button class="btn btn-ghost btn-sm" onclick="navigate('plans')">Quitter</button></div>
+  </div>`;
+}
+
+function answerQ(chosen) {
+  if(quizAnswered)return; quizAnswered=true;
+  const q=quizData[quizIdx];
+  document.querySelectorAll('.quiz-opt').forEach((o,i)=>{
+    o.disabled=true;
+    if(i===q.correct)o.classList.add('correct');
+    else if(i===chosen&&chosen!==q.correct)o.classList.add('wrong');
+    else o.classList.add('reveal');
+  });
+  if(chosen===q.correct) quizScore++;
+  document.getElementById('q-exp').style.display=''; document.getElementById('q-exp').textContent=q.explanation;
+  document.getElementById('q-nav').innerHTML=`<div style="font-size:13px;font-weight:700;color:${chosen===q.correct?'var(--a3)':'var(--a2)'}">${chosen===q.correct?'✓ Correct !':'✗ Raté'}</div><button class="btn btn-primary btn-sm" onclick="quizIdx++;renderQuizQ(plans.find(x=>x.id===activePlanId))">Suivante →</button>`;
+}
+
+function renderQuizScore(p) {
+  const pct=Math.round(quizScore/quizData.length*100);
+  const msg=pct>=80?'Excellent ! 🔥':pct>=60?'Bon travail ! 💪':pct>=40?'Continue ! 📚':'À retravailler 😅';
+  document.getElementById('quiz-body').innerHTML=`<div class="card quiz-score">
+    <div class="score-num">${quizScore}/${quizData.length}</div>
+    <div style="font-size:16px;font-weight:800;margin-top:8px">${msg}</div>
+    <div style="font-size:14px;color:var(--muted);margin:8px 0 28px">${pct}% de réussite</div>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+      <button class="btn btn-primary" onclick="runQuiz('${p.id}')">🔄 Nouveau quiz</button>
+      <button class="btn btn-ghost" onclick="openPlan('${p.id}')">← Retour au plan</button>
+    </div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════
+// FLASHCARDS
+// ═══════════════════════════════════════════
+async function runFc(planId) {
+  const p=plans.find(x=>x.id===planId); if(!p)return;
+  document.getElementById('fc-select').style.display='none';
+  const body=document.getElementById('fc-body');
+  body.style.display=''; body.innerHTML=`<div class="loading-box card"><div class="spinner"></div><p>Génération des flashcards sur ${p.matiere}...</p></div>`;
+
+  const prompt=`Génère 15 flashcards recto/verso pour ce cours. Type: ${TYPE_LABEL[p.typeExam]}.
+COURS: ${p.cours.substring(0,3000)}
+Réponds UNIQUEMENT avec ce JSON:
+{"cards":[{"front":"string question/terme","back":"string réponse concise"}]}
+15 cartes, notions clés, réponses 1-3 lignes.`;
+
+  try {
+    const raw=await callClaude(prompt,3000);
+    fcData=JSON.parse(raw).cards; fcData.sort(()=>Math.random()-.5); fcIdx=0;
+    renderFcCard();
+  } catch(e){
+    body.innerHTML=`<div class="card" style="text-align:center;padding:40px"><p style="color:var(--muted)">Erreur: ${e.message}</p><button class="btn btn-primary btn-sm" style="margin-top:16px" onclick="runFc('${planId}')">Réessayer</button></div>`;
+  }
+}
+
+function renderFcCard() {
+  if(fcIdx>=fcData.length){
+    document.getElementById('fc-body').innerHTML=`<div class="card quiz-score"><div style="font-size:48px;margin-bottom:16px">🎉</div><div style="font-size:22px;font-weight:900;margin-bottom:8px">Session terminée !</div><div style="color:var(--muted);margin-bottom:28px">${fcData.length} cartes revues</div><div style="display:flex;gap:10px;justify-content:center"><button class="btn btn-primary" onclick="runFc('${activePlanId}')">🔄 Recommencer</button><button class="btn btn-ghost" onclick="openPlan('${activePlanId}')">← Retour</button></div></div>`;
+    return;
+  }
+  const fc=fcData[fcIdx];
+  document.getElementById('fc-body').innerHTML=`<div class="card">
+    <div style="display:flex;justify-content:space-between;margin-bottom:16px"><span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--muted)">${fcIdx+1}/${fcData.length}</span><span style="font-size:13px;color:var(--muted)">Clique pour retourner</span></div>
+    <div class="prog-bar" style="margin-bottom:20px"><div class="prog-fill" style="width:${(fcIdx+1)/fcData.length*100}%"></div></div>
+    <div class="fc-wrapper"><div class="fc-card" id="fc-c" onclick="flipFc()">
+      <div class="fc-face fc-front"><div><div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:14px">Question</div><div class="fc-text">${fc.front}</div><div class="fc-hint">Clique pour voir la réponse</div></div></div>
+      <div class="fc-face fc-back"><div><div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--a);margin-bottom:14px">Réponse</div><div class="fc-text" style="font-size:14px;color:var(--muted)">${fc.back}</div></div></div>
+    </div></div>
+    <div class="fc-rating" id="fc-r" style="display:none">
+      <button class="rate-btn rate-hard" onclick="rateCard('hard')">😰 Difficile</button>
+      <button class="rate-btn rate-medium" onclick="rateCard('medium')">🤔 Moyen</button>
+      <button class="rate-btn rate-easy" onclick="rateCard('easy')">✅ Facile</button>
+    </div>
+  </div>`;
+}
+
+function flipFc(){document.getElementById('fc-c')?.classList.toggle('flipped');document.getElementById('fc-r').style.display='flex';}
+
+function rateCard(r){
+  if(r==='hard'&&fcIdx<fcData.length-1){const c=fcData.splice(fcIdx,1)[0];fcData.splice(Math.min(fcIdx+3,fcData.length),0,c);}
+  else fcIdx++;
+  renderFcCard();
+}
+
+// ═══════════════════════════════════════════
+// EXAM BLANC
+// ═══════════════════════════════════════════
+async function runExam(planId) {
+  const p=plans.find(x=>x.id===planId); if(!p)return;
+  document.getElementById('eb-select').style.display='none';
+  const body=document.getElementById('eb-body');
+  body.style.display=''; body.innerHTML=`<div class="loading-box card"><div class="spinner"></div><p>Génération du sujet d'examen pour ${p.matiere}...</p></div>`;
+  const dureeMin={1h:60,'1h30':90,'2h':120,'3h':180,'4h':240}[p.duree]||120;
+
+  const prompt=`Génère un sujet d'examen blanc réaliste de niveau universitaire.
+INFOS: Matière=${p.matiere}, Type=${TYPE_LABEL[p.typeExam]}, Durée=${p.duree||'2h'}, Note visée=${p.note}/20
+COURS: ${p.cours.substring(0,2000)}
+Réponds UNIQUEMENT avec ce JSON:
+{"sujet":"string sujet complet avec contexte et instructions","consignes":["string"],"criteres":["string"]}
+Sujet réaliste adapté EXACTEMENT au type ${TYPE_LABEL[p.typeExam]}.`;
+
+  try {
+    const raw=await callClaude(prompt,2000);
+    const exam=JSON.parse(raw);
+    if(examTimer)clearInterval(examTimer);
+    examSeconds=dureeMin*60;
+    body.innerHTML=`
+      <div class="exam-header-bar">
+        <div><div style="font-weight:800;font-size:15px">${p.matiere} · ${TYPE_LABEL[p.typeExam]}</div><div style="font-size:12px;color:var(--muted)">Examen blanc · ${p.duree||'2h'}</div></div>
+        <div class="exam-timer" id="eb-t">${fmt(examSeconds)}</div>
+      </div>
+      <div style="margin-bottom:16px"><div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:8px">Consignes</div>
+        ${(exam.consignes||[]).map(c=>`<div style="font-size:13px;color:var(--muted);padding:8px 12px;background:var(--s2);border-radius:8px;border-left:3px solid var(--a);margin-bottom:6px">→ ${c}</div>`).join('')}
+      </div>
+      <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:8px">Sujet</div>
+      <div class="exam-question">${exam.sujet}</div>
+      <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);font-weight:700;margin:16px 0 8px">Ta réponse</div>
+      <textarea class="exam-answer" id="eb-ans" placeholder="Commence ta rédaction ici..."></textarea>
+      <div style="display:flex;gap:10px;margin-top:16px">
+        <button class="btn btn-primary" onclick="submitExam('${planId}',${JSON.stringify(exam).replace(/\\/g,'\\\\').replace(/'/g,"\\'")})" style="flex:1;justify-content:center">✅ Rendre ma copie</button>
+        <button class="btn btn-ghost" onclick="if(examTimer)clearInterval(examTimer);navigate('plans')">Quitter</button>
+      </div>
+      <div id="eb-fb"></div>`;
+
+    examTimer=setInterval(()=>{
+      examSeconds--;
+      const el=document.getElementById('eb-t');
+      if(el){el.textContent=fmt(examSeconds);if(examSeconds<=300)el.classList.add('warning');if(examSeconds<=0){clearInterval(examTimer);submitExam(planId,exam);}}
+      else clearInterval(examTimer);
+    },1000);
+  } catch(e){
+    body.innerHTML=`<div class="card" style="text-align:center;padding:40px"><p style="color:var(--muted)">Erreur: ${e.message}</p><button class="btn btn-primary btn-sm" style="margin-top:16px" onclick="runExam('${planId}')">Réessayer</button></div>`;
+  }
+}
+
+function fmt(s){const m=Math.floor(Math.abs(s)/60),sec=Math.abs(s)%60;return(s<0?'-':'')+(m+'').padStart(2,'0')+':'+(sec+'').padStart(2,'0');}
+
+async function submitExam(planId, exam) {
+  if(examTimer)clearInterval(examTimer);
+  const answer=document.getElementById('eb-ans')?.value||'(vide)';
+  const p=plans.find(x=>x.id===planId);
+  const fb=document.getElementById('eb-fb');
+  if(fb){fb.innerHTML=`<div class="loading-box card" style="margin-top:20px"><div class="spinner"></div><p>L'IA corrige ta copie...</p></div>`;}
+
+  const prompt=`Tu es un correcteur d'examen bienveillant mais rigoureux.
+MATIÈRE: ${p?.matiere}, TYPE: ${TYPE_LABEL[p?.typeExam||'dissertation']}, NOTE VISÉE: ${p?.note}/20
+SUJET: ${exam.sujet||''}
+CRITÈRES: ${(exam.criteres||[]).join(', ')}
+COPIE: ${answer}
+Réponds UNIQUEMENT avec ce JSON:
+{"note":number,"mention":"string","points_forts":["string"],"points_ameliorer":["string"],"commentaire_general":"string","conseils":["string"]}`;
+
+  try {
+    const raw=await callClaude(prompt,2000);
+    const corr=JSON.parse(raw);
+    if(fb) fb.innerHTML=`<div class="card" style="margin-top:20px">
+      <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--a);font-weight:700;text-align:center;margin-bottom:8px">Correction IA</div>
+      <div class="feedback-score">${corr.note}/20</div>
+      <div style="text-align:center;font-size:14px;font-weight:700;color:var(--muted);margin-bottom:24px">${corr.mention}</div>
+      <div class="feedback-section"><div class="feedback-title" style="color:var(--a3)">✅ Points forts</div>${(corr.points_forts||[]).map(x=>`<div class="feedback-txt">· ${x}</div>`).join('')}</div>
+      <div class="feedback-section"><div class="feedback-title" style="color:var(--a2)">⚠️ À améliorer</div>${(corr.points_ameliorer||[]).map(x=>`<div class="feedback-txt">· ${x}</div>`).join('')}</div>
+      <div class="feedback-section"><div class="feedback-title" style="color:var(--a)">💬 Commentaire</div><div class="feedback-txt">${corr.commentaire_general}</div></div>
+      <div class="feedback-section"><div class="feedback-title" style="color:var(--a4)">🎯 Conseils pour le vrai exam</div>${(corr.conseils||[]).map(x=>`<div class="feedback-txt">→ ${x}</div>`).join('')}</div>
+      <div style="display:flex;gap:10px;margin-top:20px">
+        <button class="btn btn-primary" onclick="runExam('${planId}')" style="flex:1;justify-content:center">🔄 Nouvel examen</button>
+        <button class="btn btn-ghost" onclick="openPlan('${planId}')">← Retour</button>
+      </div>
+    </div>`;
+    fb?.scrollIntoView({behavior:'smooth'});
+  } catch(e){
+    if(fb) fb.innerHTML=`<div class="card" style="margin-top:20px;padding:24px;text-align:center"><p style="color:var(--muted)">Erreur de correction: ${e.message}</p></div>`;
+  }
+}
+
+// INIT
+loadPlans();
+renderHome();
+</script>
+</body>
+</html>
